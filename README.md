@@ -1,9 +1,29 @@
-# python-sorts
-A few common sorting algorithms implemented in Python (for practice)
+# python-algorithms
+Some algorithms implemented in python, mostly based off of "Princeton Algorithms, Part 1" course
 
-# sorts implemeneted
-Quicksort (both Lomuto and Hoare partitioning).
+# Various implemented algorithms
+Quick find
 
-Bubble sort.
+Quick union
 
-Bogo sort.
+Percolation
+
+Stack
+
+Queue
+
+Two-stack algorithm
+
+Knuth Shuffle
+
+Selection Sort
+
+Insertion Sort
+
+Shell Sort
+
+Quick Sort
+
+Bubble Sort
+
+Quick Select
