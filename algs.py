@@ -197,6 +197,21 @@ class Node:
         self.val = val
         self.next = next
 
+    def __str__(self):
+        next = self.next if self.next is None else self.next.val
+        return "Val: " + str(self.val) + ", next: " + str(next)
+
+class DNode:
+    def __init__(self, val=None, next=None, prev=None):
+        self.val = val
+        self.next = next
+        self.prev = prev
+
+    def __str__(self):
+        next = self.next if self.next is None else self.next.val
+        prev = self.prev if self.prev is None else self.prev.val
+        return "Val: " + str(self.val) + ", next: " + str(next) + ", prev: " + str(prev)
+
 # %%
 class Stack:
     #implemented with linked lists
@@ -286,7 +301,89 @@ class Queue:
             print(cur.val)
             cur = cur.next
 
+class Deque:
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+    def insertFront(self, val):
+        first = self.first
+        self.first = DNode()
+        self.first.val = val
+        self.first.prev = first
+        self.first.next = None
+        if first == None:
+            self.last = self.first
+        else:
+            first.next = self.first
+
+    def insertRear(self, val):
+        last = self.last
+        self.last = DNode()
+        self.last.val = val
+        self.last.prev = None
+        self.last.next = last
+        if last == None:
+            self.first = self.last
+        else:
+            last.prev = self.last
+
+    def deleteFront(self):
+        if self.isEmpty():
+            return
+        first = self.first.prev
+        self.first = first
+        if self.first != None:
+            self.first.next = None
+        else:
+            self.last = None
+
+    def deleteRear(self):
+        if self.isEmpty():
+            return
+        last = self.last.next
+        self.last = last
+        if self.last != None:
+            self.last.prev = None
+        else:
+            self.first = None
+
+    def show(self):
+        last = self.last
+        #print("last: " + str(self.last))
+        #print("first: " + str(self.first))
+        while last != None:
+            print(last.val)
+            last = last.next
+
+    def isEmpty(self):
+        return self.first == None and self.last == None
+
+    @staticmethod
+    def test():
+        a = Deque()
+
+        a.insertFront(10)
+        a.insertRear(3)
+        a.insertFront(11)
+        a.insertRear(44)
+
+        a.deleteFront()
+        a.deleteRear()
+
+        a.show()
+
 # %%
+from ast import literal_eval
+
+def isInt(s):
+    val = literal_eval(s)
+    return isinstance(val, int) or (isinstance(val, float) and val.is_integer()) #accounts for 0s after decimal place
+
+def isFloat(s):
+    val = literal_eval(s)
+    return isinstance(val, float) and not val.is_integer()
+
 class TwoStackAlgorithm:
     # Dijkstra's two-stack algorithm for expression evaluation
     class TokenError(Exception):
@@ -308,24 +405,26 @@ class TwoStackAlgorithm:
         toks = self.expression.split()
         for i in range(len(toks)):
             tok = toks[i]
-            if tok == "(":
+            if tok == "(": #ignore left parentheses
                 pass
-            elif tok.isnumeric():
-                self.valStack.push(int(tok))
-            elif tok in self.ops:
+            elif tok in self.ops: #push operator onto op stack
                 self.opStack.push(self.charToOp[tok])
-            elif tok == ")":
+            elif tok == ")": # calculate result from top two values and top operator, then push onto val stack
                 val2, val1 = self.valStack.pop(), self.valStack.pop() #values are backwards on stack
                 operator = self.opStack.pop()
                 result = operator(val1,val2)
                 self.valStack.push(result)
+            elif isInt(tok):
+                self.valStack.push(int(tok))
+            elif isFloat(tok):
+                self.valStack.push(float(tok))
             else:
-                raise self.TokenError(tok)
+                raise self.TokenError(tok) #not recognized
         return self.valStack.pop()
 
     @staticmethod
     def test():
-        a = TwoStackAlgorithm("( ( 6 ^ 2 ) + ( ( 1 / 2 ) * 3 ) )") #final result is last value on value stack
+        a = TwoStackAlgorithm("( ( 6.2 ^ 2 ) + ( ( 1 / 2 ) * 3 ) )") #final result is last value on value stack
         print(a.evaluate())
 
 #TwoStackAlgorithm.test()
@@ -484,8 +583,7 @@ class MergeSort:
 # %%
 class QuickSort:
     """
-    -Has two different partitioning algorithm - Lomuto and Hoare - but both are called "QuickSort"
-    (the actual recursive algorithm is still the same)
+    -Many variants, two main textbook partitioning systems (hoare, lomuto)
     -Recursive divide-and-conquer sorting algorithm
     -Steps:
         1. Choose a pivot and find its true value
@@ -498,6 +596,7 @@ class QuickSort:
         if lo==None and hi==None:
             lo = 0
             hi = len(ls) - 1
+            Shuffle.randomShuffle(ls)
         if lo<hi:
             pi = QuickSort.lomuto_partition(ls,lo,hi)
             QuickSort.lomuto(ls,lo,pi-1)
@@ -523,6 +622,7 @@ class QuickSort:
         if lo==None and hi==None:
             lo = 0
             hi = len(ls) - 1
+            Shuffle.randomShuffle(ls)
         if lo<hi:
             pi = QuickSort.hoare_partition(ls,lo,hi)
             QuickSort.hoare(ls,lo,pi)
@@ -555,6 +655,32 @@ class QuickSort:
             else:
                 break
         return j
+
+    @staticmethod
+    def threeWaySort(arr, low=None, high=None):
+        #much faster when many keys are equal, uses 3-way partitioning
+        if low == None and high == None:
+            low = 0
+            high = len(arr) - 1
+            Shuffle.randomShuffle(ls)
+        if high <= low:
+            return
+        lt = low
+        gt = high
+        pivot = arr[low]
+        i = low
+        while i <= gt:
+            if arr[i] < pivot:
+                arr[lt], arr[i] = arr[i], arr[lt]
+                lt += 1
+                i += 1
+            elif arr[i] > pivot:
+                arr[i], arr[gt] = arr[gt], arr[i]
+                gt -= 1
+            else:
+                i += 1
+        QuickSort.threeWaySort(arr, low, lt-1)
+        QuickSort.threeWaySort(arr, gt+1, high)
 
     @staticmethod
     def partition(arr, low, high):
@@ -591,7 +717,10 @@ class QuickSort:
     def test():
         ls = [3,5,11,9,7,6,14,2,6,1,11,17,4]
         print(ls)
-        QuickSort.sort(ls)
+        #QuickSort.sort(ls)
+        #QuickSort.hoare(ls)
+        #QuickSort.lomuto(ls)
+        QuickSort.threeWaySort(ls)
         print(ls)
 
 #QuickSort.test()
@@ -701,3 +830,143 @@ class TopK:
         print("actual: " + str(ls[len(ls)//2]))
 
 #TopK.test()
+
+# %%
+class UnorderedPriorityQueue:
+    #implemented with python standard array
+    def __init__(self):
+        self.n = 0
+        self.ls = []
+
+    def insert(self, val):
+        self.ls.append(val)
+        self.n += 1
+
+    def deleteMax(self):
+        if self.isEmpty():
+            return
+        max = 0 #max index
+        for i in range(self.n):
+            if self.ls[i] > self.ls[max]:
+                max = i
+        self.ls[max], self.ls[self.n-1] = self.ls[self.n-1], self.ls[max]
+        self.n -= 1
+        return self.ls.pop()
+
+    def isEmpty(self):
+        return self.n==0
+
+    def show(self):
+        print(self.ls)
+
+    @staticmethod
+    def test():
+        a = UnorderedPriorityQueue()
+        a.insert(10)
+        a.insert(14)
+        a.insert(2)
+        a.deleteMax()
+        a.show()
+
+#UnorderedPriorityQueue.test()
+
+class OrderedPriorityQueue:
+    def __init__(self):
+        self.n = 0
+        self.ls = []
+
+    def insert(self, val):
+        self.ls.append(val)
+        self.n += 1
+        #simplified insertion sort alg to insert new value
+        j = self.n - 1
+        while self.ls[j] < self.ls[j - 1] and j>0:
+            self.ls[j-1], self.ls[j] = self.ls[j], self.ls[j-1]
+            j -= 1
+
+    def deleteMax(self):
+        if self.isEmpty():
+            return
+        return self.ls.pop()
+
+    def isEmpty(self):
+        return self.n==0
+
+    def show(self):
+        print(self.ls)
+
+    @staticmethod
+    def test():
+        a = OrderedPriorityQueue()
+        a.insert(10)
+        a.insert(14)
+        a.insert(2)
+        a.deleteMax()
+        a.show()
+
+#OrderedPriorityQueue.test()
+
+class BinaryHeap:
+    # heap ordering: parent val greater or equal than children val
+    # indices start at 1, nodes written in level order (like BFS)
+    # array arithmetic: largest node at arr[1]
+    #                   parent of k at k // 2
+    #                   children of k at 2k and 2k+1
+    # promotion: if heap order violated, exchange child with parent until order is restored
+    def __init__(self):
+        self.ls = [None]
+        self.n = 0
+
+    def swim(self, k):
+        #promote node at k
+        while (k>1 and self.ls[k//2] < self.ls[k]):
+            self.ls[k//2], self.ls[k] = self.ls[k], self.ls[k//2]
+            k = k//2
+
+    def insert(self, val):
+        #add a node, swim it up
+        self.ls.append(val)
+        self.n += 1
+        self.swim(self.n)
+
+    def sink(self, k):
+        #demote node at k until order is restored
+        while (2*k <= self.n):
+            j = 2*k
+            if j < self.n and (self.ls[j] < self.ls[j+1]):
+                j += 1
+            if self.ls[k] >= self.ls[j]:
+                break
+            self.ls[k], self.ls[j] = self.ls[j], self.ls[k]
+            k = j
+
+    def deleteMax(self):
+        # replace root with last node, pop last node, and sink the new root down
+        if self.isEmpty():
+            return
+        max = self.ls
+        self.ls[1], self.ls[self.n] = self.ls[self.n], self.ls[1]
+        self.ls.pop()
+        self.n -= 1
+        self.sink(1)
+        return max
+
+    def show(self):
+        print(self.ls)
+
+    def isEmpty(self):
+        return self.n==0
+
+    @staticmethod
+    def test():
+        a = BinaryHeap()
+        a.insert(2)
+        a.insert(1)
+        a.insert(16)
+        a.insert(4)
+        a.insert(10)
+        a.show()
+        a.deleteMax()
+        a.show()
+
+#BinaryHeap.test()
