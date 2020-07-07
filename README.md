@@ -12,6 +12,8 @@ Stack
 
 Queue
 
+Deque
+
 Two-stack algorithm
 
 Knuth Shuffle
@@ -22,8 +24,12 @@ Insertion Sort
 
 Shell Sort
 
+Merge Sort
+
 Quick Sort
 
 Bubble Sort
 
 Quick Select
+
+Priority Queue (Ordered, Unordered, Binary Heap)
