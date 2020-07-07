@@ -944,7 +944,7 @@ class BinaryHeap:
         # replace root with last node, pop last node, and sink the new root down
         if self.isEmpty():
             return
-        max = self.ls
+        max = self.ls[1]
         self.ls[1], self.ls[self.n] = self.ls[self.n], self.ls[1]
         self.ls.pop()
         self.n -= 1
@@ -970,3 +970,103 @@ class BinaryHeap:
         a.show()
 
 #BinaryHeap.test()
+
+class HeapSort:
+    @staticmethod
+    def sort(arr):
+        arr.insert(0,None) #insert placeholder for 1 based indexing
+        n = len(arr) - 1
+        #get into heap order
+        for k in range(n//2, 0, -1):
+            HeapSort.sink(arr, k, n)
+        #put max at end of array repeatedly
+        while n>1:
+            arr[1], arr[n] = arr[n], arr[1]
+            n -= 1
+            HeapSort.sink(arr, 1, n)
+        #remove placeholder at beginning
+        arr.pop(0)
+
+    @staticmethod
+    def sink(arr, k, n): #copied from binary heap, slightly edited
+        while (2*k <= n):
+            j = 2*k
+            if j < n and (arr[j] < arr[j+1]):
+                j += 1
+            if arr[k] >= arr[j]:
+                break
+            arr[k], arr[j] = arr[j], arr[k]
+            k = j
+
+    @staticmethod
+    def test():
+        ls = [3,3,7,5,11,9,7,6,14,2,6,1,11,17,4]
+        print(ls)
+        HeapSort.sort(ls)
+        print(ls)
+
+#HeapSort.test()
+
+# %%
+class STNode:
+    # a symbol table linked list node
+    def __init__(self, key=None, val=None, next=None):
+        self.key = key
+        self.val = val
+        self.next = next
+
+    def __str__(self):
+        next = self.next if self.next is None else self.next.val
+        return "Key: " + str(self.key) + ", Val: " + str(self.val)
+
+class UnorderedListSymbolTable:
+    def __init__(self):
+        self.start = None
+
+    def put(self, key, val):
+        if self.isEmpty():
+            self.start = STNode(key=key,val=val)
+        else:
+            scan = self.start
+            while scan.key != key and scan.next != None:
+                scan = scan.next
+            if scan.key == key:
+                scan.val = val
+            else:
+                scan.next = STNode(key=key,val=val)
+
+    def get(self, key):
+        scan = self.start
+        while scan.key != key and scan.next != None:
+            scan = scan.next
+        if scan.key == key:
+            return scan.val
+        else:
+            return None
+
+    def delete(self, key): #fake delete
+        self.put(key, None)
+
+    def contains(self, key):
+        return self.get(key) != None
+
+    def isEmpty(self):
+        return self.start == None
+
+    def show(self):
+        scan = self.start
+        while scan != None:
+            if self.contains(scan.key): #ignores "deleted" keys
+                print(scan)
+            scan = scan.next
+    @staticmethod
+    def test():
+        a = LinkedListSymbolTable()
+
+        a.put("a",1)
+        a.put("b",2)
+        a.put("c",10)
+        a.put("b",10)
+        a.delete("a")
+
+        a.show()
