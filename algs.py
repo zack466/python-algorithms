@@ -5,6 +5,7 @@
 # %%
 import random
 import numpy as np
+import math
 
 # %%
 class QuickFind:
@@ -420,11 +421,11 @@ class TwoStackAlgorithm:
                 self.valStack.push(float(tok))
             else:
                 raise self.TokenError(tok) #not recognized
-        return self.valStack.pop()
+        return self.valStack.pop()  #final result is last value on value stack
 
     @staticmethod
     def test():
-        a = TwoStackAlgorithm("( ( 6.2 ^ 2 ) + ( ( 1 / 2 ) * 3 ) )") #final result is last value on value stack
+        a = TwoStackAlgorithm("( ( 6.2 ^ 2 ) + ( ( 1 / 2 ) * 3 ) )")
         print(a.evaluate())
 
 #TwoStackAlgorithm.test()
@@ -1070,3 +1071,239 @@ class UnorderedListSymbolTable:
         a.delete("a")
 
         a.show()
+
+class OrderedSymbolTable:
+    #keeps keys in order, uses binary search to get correct key
+    #ordered keys allow for convenient operations like min, max, floor, ceil, select, range, etc
+    def __init__(self):
+        self.keys = []
+        self.vals = []
+        self.n = 0
+
+    def get(self, key):
+        if self.isEmpty():
+            return
+        i = self.rank(key)
+        if i < self.n and self.keys[i] == key:
+            return self.vals[i]
+        else:
+            return
+
+    def put(self, key, val):
+        if key in self.keys:
+            self.vals[self.rank(key)] = val
+        else:
+            self.keys.append(key)
+            self.vals.append(val)
+            j = self.n
+            self.n += 1
+            while self.keys[j] < self.keys[j-1] and j > 0:
+                self.keys[j-1], self.keys[j] = self.keys[j], self.keys[j-1]
+                self.vals[j-1], self.vals[j] = self.vals[j], self.vals[j-1]
+                j -= 1
+
+    def rank(self, key):
+        #returns number of keys less than key
+        low = 0
+        high = self.n-1
+        while low < high:
+            mid = low + (high-low) // 2
+            if key < self.keys[mid]:
+                high = mid - 1
+            elif key > self.keys[mid]:
+                low = mid + 1
+            else:
+                return mid
+        return low
+
+    def delete(self, key):
+        if key in self.keys:
+            idx = self.rank(key)
+            self.keys.pop(idx)
+            self.vals.pop(idx)
+            self.n -= 1
+
+    def isEmpty(self):
+        return self.n == 0
+
+    def show(self):
+        print(self.keys)
+        print(self.vals)
+
+    @staticmethod
+    def test():
+        a = OrderedSymbolTable()
+        a.put(1, 4)
+        a.put(4,10)
+        a.put(3, 7)
+        a.put(2, 6)
+        a.put(3,2)
+        a.delete(4)
+        a.show()
+
+#OrderedSymbolTable.test()
+
+# %%
+class BSTNode:
+    #Binary search tree node
+    def __init__(self, key=None, val=None, count=0):
+        self.key = key
+        self.val = val
+        self.left = None
+        self.right = None
+        self.count = count
+
+class BinarySearchTree:
+    #a binary tree in symmetric order
+    #each node key is larger than all keys in its left subtree and smaller than all keys in its right subtree
+    #to search, go either left or right each node until you reach the correct key (or None)
+    def __init__(self):
+        self.root = None
+
+    def __iter__(self):
+        self.queue = Queue()
+        self.inorder(self.root, self.queue)
+        return iter(self.queue)
+
+    def inorder(self, x, q):
+        if x == None:
+            return
+        self.inorder(x.left, q)
+        q.enqueue(x.key)
+        self.inorder(x.right,q)
+
+    def put(self, key, val):
+        self.root = self.rec_put(self.root, key, val)
+
+    def rec_put(self, x, key, val):
+        #recursive put method to replace a value or create new node for a given key
+        if x == None:
+            return BSTNode(key, val, 1)
+        if key < x.key:
+            x.left = self.rec_put(x.left, key, val)
+        elif key > x.key:
+            x.right = self.rec_put(x.right, key, val)
+        else:
+            x.val = val
+        x.count = 1 + self.rec_size(x.left) + self.rec_size(x.right)
+        return x
+
+    def get(self, key):
+        x = self.root
+        while (x != None):
+            if key < x.key:
+                x = x.left
+            elif key > x.key:
+                x = x.right
+            else:
+                return x.val
+        return None
+
+    def delete(self, key):
+        pass
+
+    def min(self):
+        #returns smallest key in table
+        x = self.root
+        if self.isEmpty():
+            return
+        while x.left != None:
+            x = x.left
+        return x.key
+
+    def max(self):
+        #returns largest key in table
+        x = self.root
+        if self.isEmpty():
+            return
+        while x.right != None:
+            x = x.right
+        return x.key
+
+    def floor(self, key):
+        x = self.rec_floor(self.root, key)
+        if x == None:
+            return
+        else:
+            return x.key
+
+    def rec_floor(self, x, key):
+        if x == None:
+            return None
+        if x.key == key:
+            return x
+        if key < x.key:
+            return self.rec_floor(x.left, key)
+        t = self.rec_floor(x.right, key)
+        if t != None:
+            return t
+        else:
+            return x
+
+    def isEmpty(self):
+        return self.root == None
+
+    def size(self):
+        return self.rec_size(self.root)
+
+    def rec_size(self, x):
+        if x == None:
+            return 0
+        return x.count
+
+    def rank(self, key):
+        #gives number of keys less than a given key
+        return self.rec_rank(key, self.root)
+
+    def rec_rank(self, key, x):
+        if x==None:
+            return 0
+        if key < x.key:
+            return self.rec_rank(key, x.left)
+        elif key > x.key:
+            return 1 + self.rec_size(x.left) + self.rec_rank(key, x.right)
+        else:
+            return self.rec_size(x.left)
+
+    def show(self, x=None):
+        if x==None:
+            return
+        print(str(x.key) + " " + str(x.val))
+
+        self.show(x.left)
+        self.show(x.right)
+
+    @staticmethod
+    def test():
+        a = BinarySearchTree()
+
+        a.put(6,2)
+        a.put(3,2)
+        a.put(5,2)
+        a.put(2,4)
+        a.put(7,2)
+
+        print(a.floor(4))
+        print(a.size())
+        print(a.rank(5))
+        a.show(x=a.root)
+
+        for key in a:
+            print(key)
+
+#BinarySearchTree.test()
+
+# %%
+class HashTable:
+    # items are stored in slots generated from hashing the key
+    def __init__(self, m):
+        self.m = m
+        pass
+
+    def divisionHash(key):
+        return k % self.m
+
+    def multiplicationHash(key):
+        A = (math.sqrt(5) - 1) / 2 #a constant between 0 and 1
+        ka = key * A
+        return int(self.m * (ka - int(ka)))
