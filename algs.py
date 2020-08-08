@@ -919,6 +919,9 @@ class BinaryHeap:
         self.ls = [None]
         self.n = 0
 
+    def __contains__(self, val):
+        return val in self.ls[1:]
+
     def swim(self, k):
         #promote node at k
         while (k>1 and self.ls[k//2] < self.ls[k]):

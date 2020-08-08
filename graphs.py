@@ -1,9 +1,10 @@
 # %%
 import algs
-from algs import Queue, Stack
+from algs import Queue, Stack, BinaryHeap
 import networkx as nx
 import matplotlib.pyplot as plt
 import copy
+from collections import deque
 
 # %%
 class Graph:
@@ -35,7 +36,7 @@ class Graph:
         #   White: undiscovered
         #   Grey: discovered, may have undiscovered neighbors
         #   Black: discovered, all neighbors are discovered
-        color = distance = [-1] * self.n # -1: white, 0: grey, 1: black
+        color = [-1] * self.n # -1: white, 0: grey, 1: black
         distance = [None] * self.n #distance from source s
         prev = [None] * self.n #predecessors of nodes
 
@@ -152,19 +153,43 @@ class Graph:
     def is_tree(self):
         return self.is_connected() and sum([x.count(1) for x in self.amat]) == self.n - 1
 
+    def _is_bipartite(self, s):
+        # returns whether connected component containing s is bipartite or not
+        color = [None] * self.n # -1: white, 0: grey, 1: black
+        color[s] = 0
+        Q = Queue()
+        Q.enqueue(s)
+        bipartite = True
+        while not Q.isEmpty() and bipartite:
+            u = Q.dequeue()
+            for v in self.alist[u]:
+                if color[v] == None:
+                    color[v] = 1 - color[u]
+                    Q.enqueue(v)
+                elif color[v] == color[u]:
+                    bipartite = False
+        return bipartite
+
+    def is_bipartite(self):
+        for v in range(self.n):
+            if not self._is_bipartite(v):
+                return False
+        return True
+
     @staticmethod
     def test():
         a = Graph(9)
         a.connect(0,1)
         a.connect(2,3)
-        a.connect(1,2)
         a.connect(1,3)
         a.connect(3,4)
         a.connect(6,7)
         a.connect(6,8)
         a.connected_components()
+        print(a.is_bipartite())
+        a.show()
 
-#Graph.test()
+# Graph.test()
 
 class DirectedGraph(Graph):
     #classic undirected graph
@@ -186,20 +211,61 @@ class DirectedGraph(Graph):
         [g.add_node(n) for n in range(self.n)]
         for v in range(self.n):
             for u in self.alist[v]:
-                g.add_edge(u,v)
+                g.add_edge(v,u)
         nx.draw(g,with_labels=True,node_color=['orange'])
         plt.show()
 
+    def _topological_sort(self, s, visited, ts):
+        visited[s] = True
+        for v in self.alist[s]:
+            if not visited[v]:
+                self._topological_sort(v, visited, ts)
+        ts.appendleft(s)
+
+    def topological_sort(self):
+        assert not self.is_cyclic()
+        ts = deque() # use deque for efficient left-append
+        visited = [False] * self.n
+        for i in range(self.n):
+            if not visited[i]:
+                self._topological_sort(i, visited, ts)
+        return list(ts)
+
+    def kahn_topsort(self):
+        amat = copy.deepcopy(self.amat)
+        #alternate algorithm for topological sort
+        assert not self.is_cyclic()
+        pq = BinaryHeap()
+        ts = []
+        for v in range(self.n):
+            if [amat[x][v] for x in range(self.n)].count(1) == 0: #if indegree is 0
+                pq.insert(v)
+        while not pq.isEmpty():
+            v = pq.deleteMax()
+            ts.append(v)
+            for i in range(self.n):
+                amat[v][i] = 0
+            for v in range(self.n):
+                if v not in ts and v not in pq:
+                    if [amat[x][v] for x in range(self.n)].count(1) == 0:
+                        pq.insert(v)
+        return ts
+
     @staticmethod
     def test():
-        b = DirectedGraph(5)
-        b.connect(2,3)
-        b.connect(0,3)
-        b.connect(3,4)
+        a = DirectedGraph(8)
+        a.connect(0,1)
+        a.connect(0,2)
+        a.connect(1,2)
+        a.connect(1,3)
+        a.connect(2,3)
+        a.connect(3,4)
+        a.connect(2,5)
+        a.connect(7,6)
+        print(a.topological_sort())
+        a.show()
 
-        b.print_path(2,4)
-        b.show()
-
+# DirectedGraph.test()
 
 # %%
 def prufer_decode(seq):
