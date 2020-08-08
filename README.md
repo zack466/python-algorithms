@@ -1,5 +1,5 @@
 # python-algorithms
-Some algorithms implemented in python, mostly based off of "Princeton Algorithms, Part 1" course
+Some algorithms implemented in python, from a variety of sources including Princeton Algorithms course, Introduction of Algorithms (Cormen), cpbook, etc.
 
 # Various implemented algorithms and datastructures
 Quick find
