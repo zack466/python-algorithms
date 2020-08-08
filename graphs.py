@@ -82,6 +82,16 @@ class Graph:
             color[u] = 1
         return (color, distance, prev) #returns results of search
 
+    def dfs_rec(self, s, visited=None):
+        #recursive dfs
+        if visited==None:
+            visited = [False] * self.n
+        visited[s] = True
+        for node in self.alist[s]:
+            if not visited[node]:
+                self.dfs_rec(node, visited)
+        return visited
+
     def print_path(self,s,v):
         search = self.bfs(s)
         if v == s:
@@ -101,6 +111,40 @@ class Graph:
         nx.draw(g,with_labels=True,node_color=['orange'])
         plt.show()
 
+    def connected_components(self):
+        visited = [False] * self.n
+        counter = 0
+        for vertex in range(self.n):
+            if not visited[vertex]:
+                counter += 1
+                print("Component %d: " % counter, end='')
+                connected_to = self.dfs_rec(vertex)
+                for i in range(len(connected_to)):
+                    if connected_to[i]:
+                        visited[i] = True
+                        print(i, end=' ')
+                print()
+
+    def _is_cyclic(self, s=0, visited=None, prev=None):
+        # returns whether the connect component containing s is cyclic or not
+        if visited == None:
+            visited = [False] * self.n
+        if visited[s]:
+            return True
+        else:
+            visited[s] = True
+        for node in self.alist[s]:
+            if node != prev:
+                return self._is_cyclic(node, visited, s)
+        return False
+
+    def is_cyclic(self):
+        # returns whether a cycle exists in this graph or not
+        for v in range(self.n):
+            if self._is_cyclic(v):
+                return True
+        return False
+
     def is_connected(self):
         search = self.bfs(0)
         return search[0].count(1) == self.n
@@ -110,13 +154,17 @@ class Graph:
 
     @staticmethod
     def test():
-        a = Graph(5)
-        a.connect(4,1)
-        a.connect(2,4)
-        a.connect(3,0)
+        a = Graph(9)
+        a.connect(0,1)
+        a.connect(2,3)
+        a.connect(1,2)
+        a.connect(1,3)
+        a.connect(3,4)
+        a.connect(6,7)
+        a.connect(6,8)
+        a.connected_components()
 
-        a.print_path(2,3)
-        a.show()
+#Graph.test()
 
 class DirectedGraph(Graph):
     #classic undirected graph
@@ -151,6 +199,7 @@ class DirectedGraph(Graph):
 
         b.print_path(2,4)
         b.show()
+
 
 # %%
 def prufer_decode(seq):

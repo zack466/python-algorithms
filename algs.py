@@ -45,6 +45,7 @@ class QuickFind:
 
 # %%
 class QuickUnion:
+    #representation of disjoint sets
     #represented by array
     #id[i] points to the parent of i
     #items are connected if they have the same root
@@ -203,6 +204,7 @@ class Node:
         return "Val: " + str(self.val) + ", next: " + str(next)
 
 class DNode:
+    #doubly linked node
     def __init__(self, val=None, next=None, prev=None):
         self.val = val
         self.next = next
@@ -441,6 +443,7 @@ class Shuffle:
 
     @staticmethod
     def knuthShuffle(arr):
+        #aka Fisher-Yates shuffle
         #uniform random shuffling in linear time
         #like insertion sort but with random swapping instead
         for i in range(len(arr)):
@@ -456,6 +459,13 @@ class Shuffle:
         print(ls)
 
 #Shuffle.test()
+
+# %%
+def is_sorted(ls):
+    """
+    -Checks if a given list is sorted
+    """
+    return all([ls[i]<ls[i+1] for i in range(len(ls)-1)])
 
 # %%
 class SelectionSort:
@@ -727,15 +737,6 @@ class QuickSort:
 #QuickSort.test()
 
 # %%
-def is_sorted(ls):
-    """
-    -Checks if a given list is sorted
-    """
-    for i in range(len(ls)-1):
-        if ls[i] > ls[i+1]:
-            return False
-    return True
-
 class BubbleSort:
     """
     -"In short, the bubble sort seems to have nothing to recommend it, except a catchy name and the fact that it leads to some interesting theoretical problems."
@@ -1307,3 +1308,55 @@ class HashTable:
         A = (math.sqrt(5) - 1) / 2 #a constant between 0 and 1
         ka = key * A
         return int(self.m * (ka - int(ka)))
+
+# %%
+class RootedTree:
+    # represents a tre with any number of children per node
+    class Node:
+        def __init__(self, parent, val=None, left=None, right=None):
+            # 3 pointers: one to parent, one to leftmost child, one to right sibling
+            self.parent = parent
+            self.left = left
+            self.right = right
+            self.val = val
+        def __repr__(self):
+            return str(self.val)
+
+    @staticmethod
+    def add_child(parent, val):
+        if parent.left == None:
+            parent.left = RootedTree.Node(parent, val)
+        else:
+            x = parent.left
+            while x.right != None:
+                 x = x.right
+            x.right = RootedTree.Node(parent, val)
+
+    @staticmethod
+    def get_children(parent):
+        if parent.left == None:
+            return
+        else:
+            x = parent.left
+            children = [x]
+            while x.right != None:
+                x = x.right
+                children.append(x)
+        return children
+
+    @staticmethod
+    def show(node):
+        print(node)
+        if node.left != None:
+            for child in RootedTree.get_children(node):
+                RootedTree.show(child)
+
+    @staticmethod
+    def test():
+        root = RootedTree.Node(None, 'root')
+        RootedTree.add_child(root, 'child1')
+        RootedTree.add_child(root, 'child2')
+        RootedTree.add_child(root.left, 'child3')
+        RootedTree.show(root)
+
+#RootedTree.test()
