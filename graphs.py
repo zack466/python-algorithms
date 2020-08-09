@@ -224,8 +224,11 @@ class DirectedGraph(Graph):
         for v in range(self.n):
             for u in self.alist[v]:
                 g.add_edge(v,u)
-        nx.draw(g,with_labels=True,node_color=['orange'])
-        plt.show()
+
+        pdot = nx.drawing.nx_pydot.to_pydot(g)
+        view_pydot(pdot)
+        # nx.draw(g,with_labels=True,node_color=['orange'])
+        # plt.show()
 
     def _topological_sort(self, s, visited, ts):
         visited[s] = True
@@ -277,7 +280,7 @@ class DirectedGraph(Graph):
         print(a.topological_sort())
         a.show()
 
-# DirectedGraph.test()
+#DirectedGraph.test()
 
 # %%
 def prufer_decode(seq):
