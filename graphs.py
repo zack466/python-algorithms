@@ -2,9 +2,16 @@
 import algs
 from algs import Queue, Stack, BinaryHeap
 import networkx as nx
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import copy
 from collections import deque
+import pydot
+
+from IPython.display import Image, display
+
+def view_pydot(pdot):
+    plt = Image(pdot.create_png())
+    display(plt)
 
 # %%
 class Graph:
@@ -109,8 +116,13 @@ class Graph:
         for v in range(self.n):
             for u in self.alist[v]:
                 g.add_edge(u,v)
-        nx.draw(g,with_labels=True,node_color=['orange'])
-        plt.show()
+        pdot = nx.drawing.nx_pydot.to_pydot(g)
+        view_pydot(pdot)
+        # nx.nx_pydot.write_dot(g, "graph.dot")
+        # dot_graph = pydot.graph_from_dot_file('graph.dot')
+        # g.write_png("graph.png")
+        #nx.draw(g,with_labels=True,node_color=['orange'])
+        #plt.show()
 
     def connected_components(self):
         visited = [False] * self.n
@@ -189,7 +201,7 @@ class Graph:
         print(a.is_bipartite())
         a.show()
 
-# Graph.test()
+Graph.test()
 
 class DirectedGraph(Graph):
     #classic undirected graph
@@ -212,8 +224,11 @@ class DirectedGraph(Graph):
         for v in range(self.n):
             for u in self.alist[v]:
                 g.add_edge(v,u)
-        nx.draw(g,with_labels=True,node_color=['orange'])
-        plt.show()
+
+        pdot = nx.drawing.nx_pydot.to_pydot(g)
+        view_pydot(pdot)
+        # nx.draw(g,with_labels=True,node_color=['orange'])
+        # plt.show()
 
     def _topological_sort(self, s, visited, ts):
         visited[s] = True
@@ -265,7 +280,7 @@ class DirectedGraph(Graph):
         print(a.topological_sort())
         a.show()
 
-# DirectedGraph.test()
+#DirectedGraph.test()
 
 # %%
 def prufer_decode(seq):
