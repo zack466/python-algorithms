@@ -1,17 +1,24 @@
 # %%
-import algs
-from algs import Queue, Stack, BinaryHeap
-import networkx as nx
-# import matplotlib.pyplot as plt
-import copy
-from collections import deque
+# adds graphing support when matplotlib is not available (e.g. using PyPy)
+try:
+    import matplotlib.pyplot as plt
+    using_matplotlib = False
+except:
+    using_matplotlib = False
+
+# backupt graphing support
 import pydot
-
 from IPython.display import Image, display
-
 def view_pydot(pdot):
     plt = Image(pdot.create_png())
     display(plt)
+
+# imports
+import algs
+from algs import Queue, Stack, BinaryHeap
+import networkx as nx
+import copy
+from collections import deque
 
 # %%
 class Graph:
@@ -19,9 +26,10 @@ class Graph:
     def __init__(self, n):
         self.n = n
         self.alist = [[] for i in range(self.n)] #adjacency list
-        self.amat = [[0] * (i+1) for i in range(self.n)] #adjacency matrix
+        self.amat = [[0] * (i+1) for i in range(self.n)] #adjacency matrix (only diagonal and below to save space)
 
     def degree(self, x):
+        # returns the degree of a node x
         return len(self.alist[x])
 
     def connect(self,a,b):
@@ -101,6 +109,7 @@ class Graph:
         return visited
 
     def print_path(self,s,v):
+        # prints the path from node s to node v or states that one does not exist
         search = self.bfs(s)
         if v == s:
             print(s)
@@ -111,32 +120,33 @@ class Graph:
             print(v)
 
     def show(self):
+        # visualizes graph using either matplotlib or pydot
         g = nx.Graph()
         [g.add_node(n) for n in range(self.n)]
         for v in range(self.n):
             for u in self.alist[v]:
                 g.add_edge(u,v)
-        pdot = nx.drawing.nx_pydot.to_pydot(g)
-        view_pydot(pdot)
-        # nx.nx_pydot.write_dot(g, "graph.dot")
-        # dot_graph = pydot.graph_from_dot_file('graph.dot')
-        # g.write_png("graph.png")
-        #nx.draw(g,with_labels=True,node_color=['orange'])
-        #plt.show()
+        if using_matplotlib:
+            nx.draw(g,with_labels=True,node_color=['orange'])
+            plt.show()
+        else:
+            pdot = nx.drawing.nx_pydot.to_pydot(g)
+            view_pydot(pdot)
 
     def connected_components(self):
+        # returns a list of all connected components in the graph
         visited = [False] * self.n
         counter = 0
+        components = []
         for vertex in range(self.n):
             if not visited[vertex]:
-                counter += 1
-                print("Component %d: " % counter, end='')
+                components.append([])
                 connected_to = self.dfs_rec(vertex)
                 for i in range(len(connected_to)):
                     if connected_to[i]:
                         visited[i] = True
-                        print(i, end=' ')
-                print()
+                        components[-1].append(i)
+        return components
 
     def _is_cyclic(self, s=0, visited=None, prev=None):
         # returns whether the connect component containing s is cyclic or not
@@ -167,7 +177,7 @@ class Graph:
 
     def _is_bipartite(self, s):
         # returns whether connected component containing s is bipartite or not
-        color = [None] * self.n # -1: white, 0: grey, 1: black
+        color = [None] * self.n # two colors: 0 and 1
         color[s] = 0
         Q = Queue()
         Q.enqueue(s)
@@ -197,11 +207,11 @@ class Graph:
         a.connect(3,4)
         a.connect(6,7)
         a.connect(6,8)
-        a.connected_components()
+        print(a.connected_components())
         print(a.is_bipartite())
         a.show()
 
-Graph.test()
+# Graph.test()
 
 class DirectedGraph(Graph):
     #classic undirected graph
@@ -219,16 +229,18 @@ class DirectedGraph(Graph):
         self.amat[a][b] = 0
 
     def show(self):
+        # visualizes graph using either matplotlib or pydot
         g = nx.DiGraph()
         [g.add_node(n) for n in range(self.n)]
         for v in range(self.n):
             for u in self.alist[v]:
                 g.add_edge(v,u)
-
-        pdot = nx.drawing.nx_pydot.to_pydot(g)
-        view_pydot(pdot)
-        # nx.draw(g,with_labels=True,node_color=['orange'])
-        # plt.show()
+        if using_matplotlib:
+            nx.draw(g,with_labels=True,node_color=['orange'])
+            plt.show()
+        else:
+            pdot = nx.drawing.nx_pydot.to_pydot(g)
+            view_pydot(pdot)
 
     def _topological_sort(self, s, visited, ts):
         visited[s] = True
@@ -238,6 +250,7 @@ class DirectedGraph(Graph):
         ts.appendleft(s)
 
     def topological_sort(self):
+        # returns a topologically sorted list of nodes
         assert not self.is_cyclic()
         ts = deque() # use deque for efficient left-append
         visited = [False] * self.n
@@ -247,8 +260,8 @@ class DirectedGraph(Graph):
         return list(ts)
 
     def kahn_topsort(self):
-        amat = copy.deepcopy(self.amat)
         #alternate algorithm for topological sort
+        amat = copy.deepcopy(self.amat)
         assert not self.is_cyclic()
         pq = BinaryHeap()
         ts = []
@@ -280,10 +293,11 @@ class DirectedGraph(Graph):
         print(a.topological_sort())
         a.show()
 
-#DirectedGraph.test()
+# DirectedGraph.test()
 
 # %%
 def prufer_decode(seq):
+    # returns the graph represented by a prufer sequence
     n = len(seq) + 2
     G = Graph(n)
     P = list(seq)
@@ -296,6 +310,8 @@ def prufer_decode(seq):
     return G
 
 def prufer_encode(G):
+    # encodes a tree as a prufer sequence
+    assert G.is_tree(), "graph G must be a tree"
     G = copy.deepcopy(G)
     n = G.n
     seq = []
@@ -313,4 +329,4 @@ def test_prufer():
 
     print(prufer_encode(c))
 
-#test_prufer()
+# test_prufer()
